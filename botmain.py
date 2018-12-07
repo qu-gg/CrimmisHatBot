@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from PIL import Image
 import requests
+import os
 from io import BytesIO
 
 bot_prefix = "q!"
@@ -12,6 +13,8 @@ client = commands.Bot(command_prefix=bot_prefix)
 @client.async_event
 async def on_ready():
     print("Logged on as {}".format(client.user))
+    game = discord.Game(name="\'q!hat -help\' for info!")
+    await client.change_presence(game=game)
 
 
 @client.command(pass_context=True)
@@ -61,7 +64,7 @@ def check_dim(args, image_h, image_w, hat_w):
 
 
 @client.command(pass_context=True)
-async def puthat(ctx, *args):
+async def hat(ctx, *args):
     """
     Main command of the bot, creates a new avatar for a user with a Christmas hat on it.
     Grabs the user avatar and puts the hat in the top middle location with optional flags
@@ -69,12 +72,13 @@ async def puthat(ctx, *args):
     :param ctx: Context of the message, i.e. sender/channel/attachments
     :param args: Optional flags to manipulate image
     """
-    if '-i' or '-help' in args:
-        string = "Usage q!puthat:\n" \
-                 " -\t flip [flips hat horizontally]\n" \
-                 " -\t scaled=NUMBER [resizes hat by a factor of NUMBER]\n" \
-                 " -\t w=NUMBER [shifts hat horizontally by NUMBER px\n" \
-                 " -\t h=NUMBER [shifts hat vertically by NUMBER px"
+    if '-help' in args:
+        string = "Usage q!hat -argument1 -argument2:\n\n" \
+                 " \t -flip [flips hat horizontally]\n" \
+                 " \t -scaled=NUMBER [resizes hat by a factor of NUMBER]\n" \
+                 " \t -w=NUMBER [shifts hat horizontally by NUMBER px]\n" \
+                 " \t -h=NUMBER [shifts hat vertically by NUMBER px]\n\n" \
+                 "*Note: specifying no arguments results in default values.*"
         await client.send_message(ctx.message.channel, content=string)
         return
 
@@ -90,8 +94,8 @@ async def puthat(ctx, *args):
     w_offset, h_offset = check_dim(args, image_h, image_w, hat_w)
     image.paste(hat, (w_offset, h_offset), mask=hat)
     image.save("crimmis_hats/remade.png")
-
     await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
+    os.remove("crimmis_hats/remade.png")
 
 
 client.run('BOT_TOKEN')
