@@ -5,8 +5,8 @@ Simple Discord.py bot that slaps a Christmas hat on an image
 
 <h5>Requires the following permissions:<h5>
 <ul>
-    <li>- Send Message</li>
-    <li>- Embed Link</li>
-    <li>- Attach Files</li>
-    <li>- Read Message History</li>
+    <li>Send Message</li>
+    <li>Embed Link</li>
+    <li>Attach Files</li>
+    <li>Read Message History</li>
 </ul>
