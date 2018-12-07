@@ -16,21 +16,33 @@ async def on_ready():
 
 @client.command(pass_context=True)
 async def for_shed(ctx):
-    image = Image.open("users/shed/lugia.png")
-    await client.send_file(ctx.message.channel, image)
+    await client.send_file(ctx.message.channel, "users/shed/lugia.png")
 
 
-def check_args(args):
+def check_hat(args):
     hat = Image.open("crimmis_hats/cryms.png")
     for arg in args:
-        if arg == '--flip':
+        if arg == '-flip':
             hat = hat.transpose(Image.FLIP_LEFT_RIGHT)
-        if arg.startswith('--scaled='):
+        if arg.startswith('-scaled='):
             value = float(arg.split('=')[1])
             w, h = hat.size
             w_scaled, h_scaled = (int(w * value), int(h * value))
             hat = hat.resize((w_scaled, h_scaled))
     return hat
+
+
+def check_dim(args, image_h, image_w, hat_w):
+    width = (image_w - hat_w) // 2
+    height = int(image_h - (.9 * image_h))
+    for arg in args:
+        if arg.startswith('-w='):
+            value = int(arg.split('=')[1])
+            width = ((image_w - hat_w) // 2) + value
+        if arg.startswith('-h='):
+            height = int(arg.split('=')[1])
+
+    return width, height
 
 
 @client.command(pass_context=True)
@@ -42,22 +54,29 @@ async def puthat(ctx, *args):
     :param ctx: Context of the message, i.e. sender/channel/attachments
     :param args: Optional flags to manipulate image
     """
+    if '-i' or '-help' in args:
+        string = "Usage q!puthat:\n" \
+                 " -\t flip [flips hat horizontally]\n" \
+                 " -\t scaled=NUMBER [resizes hat by a factor of NUMBER]\n" \
+                 " -\t w=NUMBER [shifts hat horizontally by NUMBER px\n" \
+                 " -\t h=NUMBER [shifts hat vertically by NUMBER px"
+        await client.send_message(ctx.message.channel, content=string)
+        return
+
     message = ctx.message
     url = message.author.avatar_url
-    print("{} in {} called put_hat. Executing...".format(message.author, message.channel), end="")
     response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
 
     image = Image.open(BytesIO(response.content))
-    hat = check_args(args)
+    hat = check_hat(args)
     image_w, image_h = image.size
     hat_w, hat_h = hat.size
 
-    offset = ((image_w - hat_w) // 2, (image_h - hat_h) // 2)
-    image.paste(hat, offset, mask=hat)
+    w_offset, h_offset = check_dim(args, image_h, image_w, hat_w)
+    image.paste(hat, (w_offset, h_offset), mask=hat)
     image.save("crimmis_hats/remade.png")
 
     await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
-    print("...command complete.")
 
 
 client.run('BOT_TOKEN')
