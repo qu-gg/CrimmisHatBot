@@ -13,13 +13,15 @@ client = commands.Bot(command_prefix=bot_prefix)
 @client.async_event
 async def on_ready():
     print("Logged on as {}".format(client.user))
-    game = discord.Game(name="\'q!hat -help\' for info!")
+    game = discord.Game(name="\'q!helpc\' for info!")
     await client.change_presence(game=game)
 
 
 @client.command(pass_context=True)
-async def for_shed(ctx):
-    await client.send_file(ctx.message.channel, "users/shed/lugia.png")
+async def helpc(ctx):
+    string = "Thanks for using CrimmisHatBot! The current available commands are:\n" \
+             "\t\t q!hat *(Puts a Crimmis hat on your avatar , with options to customize it)*"
+    await client.send_message(ctx.message.channel, string)
 
 
 def check_hat(args):
@@ -31,6 +33,8 @@ def check_hat(args):
     :return: Manipulated hat file
     """
     hat = Image.open("crimmis_hats/cryms.png")
+
+
     for arg in args:
         if arg == '-flip':
             hat = hat.transpose(Image.FLIP_LEFT_RIGHT)
