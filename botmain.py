@@ -20,6 +20,13 @@ async def for_shed(ctx):
 
 
 def check_hat(args):
+    """
+    Helper function that checks puthat arguments for specific flags
+    Checks flipping the image horizontally and scaling by a factor
+    Opens the hat file, manipulates it, and returns it
+    :param args: Arguments to parse
+    :return: Manipulated hat file
+    """
     hat = Image.open("crimmis_hats/cryms.png")
     for arg in args:
         if arg == '-flip':
@@ -33,6 +40,14 @@ def check_hat(args):
 
 
 def check_dim(args, image_h, image_w, hat_w):
+    """
+    Helper function to shift the x/y coords of the hat, as well as setting default values
+    :param args: Arguments to parse
+    :param image_h: Height of the image
+    :param image_w: Width of the image
+    :param hat_w: Width of the hat
+    :return: Tuple with manipulated coordinates
+    """
     width = (image_w - hat_w) // 2
     height = int(image_h - (.9 * image_h))
     for arg in args:
