@@ -124,4 +124,4 @@ async def hat(ctx, *args):
     os.remove("crimmis_hats/remade.png")
 
 
-client.run('NTIwMzc2Nzk4MTMxOTEyNzIw.Dus--w.R-9YEKy_jfA8KhrXr6hMkvan1Uk')
+client.run('Bot_token)
