@@ -6,13 +6,11 @@ from PIL import Image
 from io import BytesIO
 from utils import get_imgs
 
-
-bot_prefix = "q!"
 Client = discord.Client()
-client = commands.Bot(command_prefix=bot_prefix)
+client = commands.Bot(command_prefix="q!")
 
-messages = {}
-prev_messages = {}
+images = {}
+
 
 @client.async_event
 async def on_ready():
@@ -28,11 +26,8 @@ async def on_message_delete(message):
     in order to clear cache.
     :param message: Message that was deleted
     """
-    id = message.author.id
-    if id in prev_messages:
-        prev_messages.pop(id)
-    if id in messages:
-        messages.pop(id)
+    if message.channel in images:
+        images.pop(message.channel)
 
 
 @client.command(pass_context=True)
@@ -47,7 +42,7 @@ async def hathelp(ctx):
     await client.send_message(ctx.message.channel, content=string)
 
 
-def check_hat(args):
+def check_hat(args, image):
     """
     Helper function that checks puthat arguments for specific flags
     Checks flipping the image horizontally and scaling by a factor
@@ -56,11 +51,15 @@ def check_hat(args):
     :return: Manipulated hat file
     """
     folder = get_imgs("crimmis_hats/")
-    hat = Image.open(folder.get('1'))
+    hat = Image.open(folder.get('0'))
     for arg in args:
         if arg.startswith('-type='):
             value = arg.split('=')[1]
             hat = Image.open(folder.get(value))
+
+    # Resizing image to appropriate size
+    image_w, image_h = image.size
+    hat.resize((int(image_w * 0.5), int(image_w * 0.5)))
 
     for arg in args:
         if arg == '-flip':
@@ -82,7 +81,7 @@ def check_dim(args, image_h, image_w, hat_w):
     :param hat_w: Width of the hat
     :return: Tuple with manipulated coordinates
     """
-    width = (image_w - hat_w) // 2
+    width = int((image_w - hat_w) * 0.75)
     height = int(image_h - (.9 * image_h))
     for arg in args:
         if arg.startswith('-w='):
@@ -108,7 +107,7 @@ async def hat(ctx, *args):
     response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
 
     image = Image.open(BytesIO(response.content))
-    hat = check_hat(args)
+    hat = check_hat(args, image)
     image_w, image_h = image.size
     hat_w, hat_h = hat.size
 
@@ -116,15 +115,12 @@ async def hat(ctx, *args):
     image.paste(hat, (w_offset, h_offset), mask=hat)
     image.save("crimmis_hats/remade.png")
 
-    author = message.author.id
-    if author in messages:
-        if author in prev_messages:
-            await client.delete_message(prev_messages.get(author))
-        await client.delete_message(messages.get(author))
+    channel = message.channel
+    if channel in images:
+        await client.delete_message(images.get(channel))
 
     message = await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
-    messages[author] = message
-    prev_messages[author] = ctx.message
+    images[channel] = message
     os.remove("crimmis_hats/remade.png")
 
 
