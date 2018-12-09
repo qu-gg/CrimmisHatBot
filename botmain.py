@@ -1,27 +1,50 @@
 import discord
-from discord.ext import commands
-from PIL import Image
 import requests
 import os
+from discord.ext import commands
+from PIL import Image
 from io import BytesIO
+from utils import get_imgs
+
 
 bot_prefix = "q!"
 Client = discord.Client()
 client = commands.Bot(command_prefix=bot_prefix)
 
+messages = {}
+prev_messages = {}
 
 @client.async_event
 async def on_ready():
     print("Logged on as {}".format(client.user))
-    game = discord.Game(name="\'q!helpc\' for info!")
+    game = discord.Game(name="\'q!hathelp\' for info!")
     await client.change_presence(game=game)
 
 
+@client.async_event
+async def on_message_delete(message):
+    """
+    If the message deleted is within the dictionaries, pop that key respectively
+    in order to clear cache.
+    :param message: Message that was deleted
+    """
+    id = message.author.id
+    if id in prev_messages:
+        prev_messages.pop(id)
+    if id in messages:
+        messages.pop(id)
+
+
 @client.command(pass_context=True)
-async def helpc(ctx):
-    string = "Thanks for using CrimmisHatBot! The current available commands are:\n" \
-             "\t\t q!hat *(Puts a Crimmis hat on your avatar , with options to customize it)*"
-    await client.send_message(ctx.message.channel, string)
+async def hathelp(ctx):
+    string = "Usage q!hat -argument1 -argument2:\n\n" \
+             " \t -type=NUM [selects which hat to use]\n" \
+             " \t -flip [flips hat horizontally]\n" \
+             " \t -scaled=NUM [resizes hat by a factor of NUMBER]\n" \
+             " \t -w=NUM [shifts hat horizontally by NUM px]\n" \
+             " \t -h=NUM [shifts hat vertically by NUM px]\n\n" \
+             "*Note: specifying no arguments results in default values.*"
+    await client.send_message(ctx.message.channel, content=string)
 
 
 def check_hat(args):
@@ -32,8 +55,12 @@ def check_hat(args):
     :param args: Arguments to parse
     :return: Manipulated hat file
     """
-    hat = Image.open("crimmis_hats/cryms.png")
-
+    folder = get_imgs("crimmis_hats/")
+    hat = Image.open(folder.get('1'))
+    for arg in args:
+        if arg.startswith('-type='):
+            value = arg.split('=')[1]
+            hat = Image.open(folder.get(value))
 
     for arg in args:
         if arg == '-flip':
@@ -76,16 +103,6 @@ async def hat(ctx, *args):
     :param ctx: Context of the message, i.e. sender/channel/attachments
     :param args: Optional flags to manipulate image
     """
-    if '-help' in args:
-        string = "Usage q!hat -argument1 -argument2:\n\n" \
-                 " \t -flip [flips hat horizontally]\n" \
-                 " \t -scaled=NUMBER [resizes hat by a factor of NUMBER]\n" \
-                 " \t -w=NUMBER [shifts hat horizontally by NUMBER px]\n" \
-                 " \t -h=NUMBER [shifts hat vertically by NUMBER px]\n\n" \
-                 "*Note: specifying no arguments results in default values.*"
-        await client.send_message(ctx.message.channel, content=string)
-        return
-
     message = ctx.message
     url = message.author.avatar_url
     response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
@@ -98,8 +115,17 @@ async def hat(ctx, *args):
     w_offset, h_offset = check_dim(args, image_h, image_w, hat_w)
     image.paste(hat, (w_offset, h_offset), mask=hat)
     image.save("crimmis_hats/remade.png")
-    await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
+
+    author = message.author.id
+    if author in messages:
+        if author in prev_messages:
+            await client.delete_message(prev_messages.get(author))
+        await client.delete_message(messages.get(author))
+
+    message = await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
+    messages[author] = message
+    prev_messages[author] = ctx.message
     os.remove("crimmis_hats/remade.png")
 
 
-client.run('BOT_TOKEN')
+client.run('NTIwMzc2Nzk4MTMxOTEyNzIw.Dus--w.R-9YEKy_jfA8KhrXr6hMkvan1Uk')
