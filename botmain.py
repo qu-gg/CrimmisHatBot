@@ -5,6 +5,8 @@ from discord.ext import commands
 from PIL import Image
 from io import BytesIO
 from utils import get_imgs
+import config
+
 
 Client = discord.Client()
 client = commands.Bot(command_prefix="q!")
@@ -124,4 +126,4 @@ async def hat(ctx, *args):
     os.remove("crimmis_hats/remade.png")
 
 
-client.run('NTIwMzc2Nzk4MTMxOTEyNzIw.Dus--w.R-9YEKy_jfA8KhrXr6hMkvan1Uk')
+client.run(config.BOT_TOKEN)
