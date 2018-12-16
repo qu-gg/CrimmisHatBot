@@ -48,17 +48,16 @@ async def feedback(ctx):
 @client.command(pass_context=True)
 async def hathelp(ctx):
     print("Help message used in {}".format(ctx.message.server))
-
     string = "To use: **q!hat**\n" \
              "\n" \
-             "You can customize your hat with commands such as 'q!hat left=20 up=50'\n" \
-             "Note: specifying no arguments results in default values.\n" \
+             "Arguments (commands use the format **command=number**):\n" \
+             "type (0-4) - chooses what type of hat to use\n" \
+             "flip - flips the image horizontally\n" \
+             "scale - scales the image to a bigger size\n" \
+             "left/right/up/down - moves the hat in the given direction\n" \
              "\n" \
-             "List of arguments (commands use the format **command=number**):\n" \
-             "\t type - (chooses what type of hat to use)\n" \
-             "flip    - (flips the image horizontally)\n" \
-             "scale   - (scales the image to a bigger size)\n" \
-             "direction (i.e. left, right, up, down)\n" \
+             "Example of use with parameters: q!hat type=2 scale=2 up=20 left=50\n" \
+             "This command selects hat 2, scales it to 2x size, and moves it accordingly\n" \
              "\n" \
              "Please use the command q!feedback to send your feedback!\n" \
              "\n" \
