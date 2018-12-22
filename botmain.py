@@ -49,6 +49,7 @@ async def feedback(ctx):
 async def hathelp(ctx):
     print("Help message used in {}".format(ctx.message.server))
     string = "To use: **q!hat**\n" \
+             "To see available hats: **q!hats**\n" \
              "\n" \
              "Arguments (commands use the format **command=number**):\n" \
              "type (0-4) - chooses what type of hat to use\n" \
@@ -72,8 +73,8 @@ async def hathelp(ctx):
 
 @client.command(pass_context=True)
 async def hats(ctx):
-    print("Showing available hats in {}".format(ctx.message.channel))
-    await client.send_file(ctx.message.server, "crimmis_hats/hats.png", filename="hats.png", content="All the available hats:")
+    print("Showing available hats in {}".format(ctx.message.server))
+    await client.send_file(ctx.message.channel, "crimmis_hats/hats.png", filename="hats.png", content="All the available hats:")
 
 
 def check_hat(args):
