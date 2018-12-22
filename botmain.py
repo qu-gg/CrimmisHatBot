@@ -9,7 +9,7 @@ import config
 Client = discord.Client()
 client = commands.Bot(command_prefix="q!")
 
-images = {}
+users = {}
 
 
 @client.async_event
@@ -22,12 +22,12 @@ async def on_ready():
 @client.async_event
 async def on_message_delete(message):
     """
-    If the message deleted is within the dictionaries, pop that key respectively
-    in order to clear cache.
-    :param message: Message that was deleted
+    # If the message deleted is within the dictionaries, pop that key respectively
+    # in order to clear cache.
+    # :param message: Message that was deleted
     """
-    if message.channel in images:
-        images.pop(message.channel)
+    if message.author.id in users:
+        users.pop(message.author.id, None)
 
 
 @client.command(pass_context=True)
@@ -53,13 +53,14 @@ async def hathelp(ctx):
              "Arguments (commands use the format **command=number**):\n" \
              "type (0-4) - chooses what type of hat to use\n" \
              "flip - flips the image horizontally\n" \
-             "scale - scales the image to a bigger size\n" \
+             "scale - scales the image to a different size\n" \
              "left/right/up/down - moves the hat in the given direction\n" \
              "\n" \
-             "Example of use with parameters: q!hat type=2 scale=2 up=20 left=50\n" \
+             "**Example of use** with parameters: 'q!hat type=2 scale=2 up=20 left=50'\n" \
              "This command selects hat 2, scales it to 2x size, and moves it accordingly\n" \
              "\n" \
-             "Please use the command q!feedback to send your feedback!\n" \
+             "Please use the command 'q!feedback <message>' to send your feedback!\n" \
+             "Note on image quality: higher resolution avatars results in cleaner images\n" \
              "\n" \
              "If this bot did its job, consider giving it an upvote!\n" \
              "Link: https://discordbots.org/bot/520376798131912720" \
@@ -67,6 +68,12 @@ async def hathelp(ctx):
     embed = discord.Embed()
     embed.add_field(name="CrimmisHatBot Usage!", value=string)
     await client.send_message(ctx.message.channel, embed=embed)
+
+
+@client.command(pass_context=True)
+async def hats(ctx):
+    print("Showing available hats in {}".format(ctx.message.channel))
+    await client.send_file(ctx.message.server, "crimmis_hats/hats.png", filename="hats.png", content="All the available hats:")
 
 
 def check_hat(args):
@@ -115,20 +122,25 @@ async def hat(ctx, *args):
     """ Handles creating and returning a hat to a user """
     print("Making hat for {} in {} \t Arguments: {}".format(ctx.message.author, ctx.message.server, args))
     message = ctx.message
-    url = message.author.avatar_url
-    response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
 
+    if len(message.attachments) > 0:
+        url = message.attachments[0].get('url')
+    else:
+        url = message.author.avatar_url
+
+    response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
     image = Image.open(BytesIO(response.content)).resize((500, 500))
+
     hat, width, height = check_hat(args)
 
     image.paste(hat, move(args, width, height), mask=hat)
     image.save("crimmis_hats/remade.png")
 
-    if message.channel in images:
-        await client.delete_message(images.get(message.channel))
+    if message.author.id in users:
+        await client.delete_message(users.get(message.author.id))
 
     image = await client.send_file(message.channel, "crimmis_hats/remade.png", filename="newhat.png", content="Hat: ")
-    images[message.channel] = image
+    users[message.author.id] = image
 
 
 client.run(config.BOT_TOKEN)
