@@ -18,4 +18,5 @@
   This command flips the hat, scales it to 2x size, and moves it accordinglu</p>
   
 <a href="https://discordapp.com/api/oauth2/authorize?client_id=520376798131912720&permissions=116736&scope=bot">Invite Link</a>
+<p></p>
 <a href="https://discordbots.org/bot/520376798131912720">Discord Bots Page</a>
