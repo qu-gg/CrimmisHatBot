@@ -3,7 +3,8 @@
 
 <p>To use: q!hat<br>
   For info: q!hathelp<br>
-  Feedback: q!feedback</p>
+  Feedback: q!feedback<br>
+  To see hat types: q!hats</p>
  
 <p>Parameters for q!hat (all parameters, except flip, use the format <b>command=number</b>):</p>
 <ul>
