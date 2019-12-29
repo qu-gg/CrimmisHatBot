@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 
+
 def get_imgs(folder):
     # Function that returns a dictionary of the images in a folder
     i = 0
