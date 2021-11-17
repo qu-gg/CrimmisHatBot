@@ -1,9 +1,12 @@
+import pytz
+import datetime
 import discord
 import requests
 from discord.ext import commands
 from PIL import Image
 from io import BytesIO
 import os
+import numpy as np
 from utils import get_imgs
 import random
 import string
@@ -36,8 +39,10 @@ async def on_message_delete(message):
 @client.command(pass_context=True)
 async def num_servers(ctx):
     """ Prints out the number of servers this bot is in """
+    hat_counts = np.load('hat_counts.npy')
+
     print("q!num_servers from: {} in #{} ".format(ctx.message.channel.guild.name, ctx.message.channel.name))
-    string = "CrimmisHatBot is in {} servers, giving hats to {} users!".format(len(client.guilds), len(client.users))
+    string = "CrimmisHatBot is in {} servers, having given hats to {} users since 11/15/21!".format(len(client.guilds), hat_counts)
     await ctx.channel.send(string)
 
 
@@ -162,6 +167,10 @@ async def hat(ctx, *args):
     users[message.author.id] = image
     os.remove("crimmis_hats/createdhats/{}.png".format(im_name))
 
+    hat_counts = np.load('hat_counts.npy')
+    hat_counts += 1
+    np.save('hat_counts.npy', hat_counts)
+
 
 @client.command(pass_context=True)
 async def CHAMPION(ctx):
@@ -171,6 +180,44 @@ async def CHAMPION(ctx):
 @client.command(pass_context=True)
 async def ezclap(ctx):
     await ctx.channel.send("https://tenor.com/view/pepe-clap-gif-10184275")
+
+
+@client.command(pass_context=True)
+async def YEP(ctx):
+    await ctx.channel.send("YEP Crimmis", file=discord.File("YEPCrimmis.png"))
+
+
+@client.command(pass_context=True)
+async def expansion(ctx):
+    # Take the time now and get the datetime of the release date
+    tzin = pytz.timezone('US/Eastern')
+
+    now = datetime.datetime.now(tzin)
+    release = datetime.datetime(year=2021, month=11, day=19, hour=4, second=0, microsecond=0, tzinfo=tzin)
+
+    # Get total seconds worth of difference between two dates
+    difference = (release - now).total_seconds()
+
+    # Calculate raw values for each
+    minutes = difference / 60
+    hours = minutes / 60
+    days = hours / 24
+
+    # Calculate chunks of total seconds between them
+    sub_days = np.floor(days)
+    sub_hours = np.floor(hours - (np.floor(days) * 24))
+    sub_minutes = np.floor(minutes - (np.floor(hours) * 60))
+    sub_seconds = np.floor(difference - (np.floor(minutes) * 60))
+
+    # Generate string for difference
+    timediff = "{} days, {} hours, {} minutes, and {} seconds!".format(
+        int(sub_days), int(sub_hours), int(sub_minutes), int(sub_seconds))
+
+    # Generate Discord embed
+    embed = discord.Embed()
+    embed.add_field(name="Time until Endwalker:", value=timediff)
+    embed.set_image(url='https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Ft02.deviantart.net%2FEoTJGDQsrKMc_wxPrdZsYteYONY%3D%2Ffit-in%2F150x150%2Ffilters%3Ano_upscale()%3Aorigin()%2Fpre10%2Fc820%2Fth%2Fpre%2Fi%2F2015%2F320%2Fe%2F0%2Fcarbuncle_summon_from_ff14_by_skyehopper-d9gt6o9.jpg&f=1&nofb=1')
+    await ctx.channel.send(embed=embed)
 
 
 client.run(config.BOT_TOKEN)
