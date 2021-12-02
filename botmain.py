@@ -1,3 +1,5 @@
+import traceback
+
 import pytz
 import datetime
 import discord
@@ -11,9 +13,11 @@ from utils import get_imgs
 import random
 import string
 import config
+from error_handler import CommandErrorHandler
 
 Client = discord.Client()
 client = commands.Bot(command_prefix="q!")
+client.add_cog(CommandErrorHandler(client))
 
 users = {}
 
@@ -56,7 +60,11 @@ async def feedback(ctx):
 
 @client.command(pass_context=True)
 async def hathelp(ctx):
-    print("Help message used in {}".format(ctx.message.channel.guild.name))
+    if isinstance(ctx.message.channel, discord.DMChannel):
+        print("Help message used for {} in DM".format(ctx.message.author.name))
+    else:
+        print("Help message used in {}".format(ctx.message.channel.guild.name))
+
     string = "To use: **q!hat**\n" \
              "To see available hats: **q!hats**\n" \
              "\n" \
@@ -74,6 +82,8 @@ async def hathelp(ctx):
              "\n" \
              "Please use the command 'q!feedback <message>' to send your feedback!\n" \
              "Note on image quality: higher resolution avatars results in cleaner images\n" \
+             "\n" \
+             "Note that this bot will sometimes be down for maintenance or upgrades. Thanks!\n" \
              "\n" \
              "If this bot did its job, consider giving it an upvote!\n" \
              "Link: https://discordbots.org/bot/520376798131912720" \
@@ -137,39 +147,58 @@ def move(args, width, height):
 @client.command(pass_context=True)
 async def hat(ctx, *args):
     """ Handles creating and returning a hat to a user """
-    print("Making hat for {} in {} \t Arguments: {}".format(ctx.message.author, ctx.message.channel.guild.name, args))
-    message = ctx.message
+    try:
+        # Check for direct message
+        if isinstance(ctx.message.channel, discord.DMChannel):
+            print("Making hat for {} in DM \t Arguments: {}".format(ctx.message.author, args))
+        else:
+            print("Making hat for {} in {} \t Arguments: {}".format(ctx.message.author, ctx.message.channel.guild.name, args))
+        message = ctx.message
 
-    if len(message.attachments) > 0:
-        url = message.attachments[0].url
-    else:
-        url = "https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.png?size=1024".format(ctx.message.author)
+        # Check whether an attachment is provided
+        if len(message.attachments) > 0:
+            url = message.attachments[0].url
+        else:
+            url = "https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.png?size=1024".format(ctx.message.author)
 
-    response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
-    image = Image.open(BytesIO(response.content)).resize((500, 500))
+        # Get the image via an html request
+        response = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
+        image = Image.open(BytesIO(response.content)).resize((500, 500))
 
-    hat, width, height = check_hat(args)
+        # Apply base transformations as needed (flip and scale)
+        hat, width, height = check_hat(args)
+        if hat is None:
+            await ctx.channel.send("Wrong command formatting, try again!")
+            return
 
-    if hat is None:
-        await ctx.channel.send("Wrong command formatting, try again!")
-        return
+        # Apply move given and temporarily save hat
+        image.paste(hat, move(args, width, height), mask=hat)
+        im_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+        image.save("crimmis_hats/createdhats/{}.png".format(im_name))
 
-    image.paste(hat, move(args, width, height), mask=hat)
-    im_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    image.save("crimmis_hats/createdhats/{}.png".format(im_name))
+        # Check whether previous hat already exists and clean it up
+        if message.author.id in users.keys() and not isinstance(ctx.message.channel, discord.DMChannel):
+            try:
+                await ctx.channel.delete_messages([users.get(message.author.id)])
+            except discord.errors.NotFound:
+                print("Could not delete message for {} - {}".format(message.author.name, message.author.name))
 
-    if message.author.id in users.keys():
-        await ctx.channel.delete_messages([users.get(message.author.id)])
+        # Send finalized image
+        image = await ctx.channel.send("Here is your hat, {}!".format(ctx.message.author.name),
+                                       file=discord.File("crimmis_hats/createdhats/{}.png".format(im_name)))
 
-    image = await ctx.channel.send("Here is your hat, {}!".format(ctx.message.author.name),
-                                   file=discord.File("crimmis_hats/createdhats/{}.png".format(im_name)))
+        # Add current message to the users dictionary and remove hat locally
+        users[message.author.id] = image
+        os.remove("crimmis_hats/createdhats/{}.png".format(im_name))
 
-    users[message.author.id] = image
-    os.remove("crimmis_hats/createdhats/{}.png".format(im_name))
-
-    hat_counts = np.load('hat_counts.npy')
-    hat_counts += 1
-    np.save('hat_counts.npy', hat_counts)
+        # Add hat counter
+        hat_counts = np.load('hat_counts.npy')
+        hat_counts += 1
+        np.save('hat_counts.npy', hat_counts)
+    except Exception as e:
+        # Catching general exceptions to give to users, handles traceback print out still
+        print("Error making hat for {}, args {}. Exception {}.".format(ctx.message.author, args, e))
+        await ctx.channel.send("{}, an error has occurred when making the hat. Make sure the arguments are correct!".format(ctx.message.author.name))
 
 
 @client.command(pass_context=True)
@@ -216,7 +245,7 @@ async def expansion(ctx):
     # Generate Discord embed
     embed = discord.Embed()
     embed.add_field(name="Time until Endwalker:", value=timediff)
-    embed.set_image(url='https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Ft02.deviantart.net%2FEoTJGDQsrKMc_wxPrdZsYteYONY%3D%2Ffit-in%2F150x150%2Ffilters%3Ano_upscale()%3Aorigin()%2Fpre10%2Fc820%2Fth%2Fpre%2Fi%2F2015%2F320%2Fe%2F0%2Fcarbuncle_summon_from_ff14_by_skyehopper-d9gt6o9.jpg&f=1&nofb=1')
+    embed.set_image(url="https://cdn.discordapp.com/emojis/663359486769233920.gif?v=1")
     await ctx.channel.send(embed=embed)
 
 
