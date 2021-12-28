@@ -19,10 +19,17 @@
   
 <p>CrimmisHatBot may intermittently go down in order to undergo repairs and upgrades. Thank you for your patience!</p>
  
-<p><b>Links:</b>
-<ul>
-<li><a href="https://discordapp.com/api/oauth2/authorize?client_id=520376798131912720&permissions=116736&scope=bot">Invite Link</a></li>
-  <li><a href="https://discordbots.org/bot/520376798131912720">Discord Bots Page</a></li>
-  <li><a href="https://www.buymeacoffee.com/CrimmisHatBot">Buy me a coffee!</a></li>
-</ul>
+<p><b>Yearly Statistics:</b> <br>
+2018 - Servers: 300 <br>
+2019 - Servers: 700 <br>
+2020 - Servers: 1,204 <br>
+2021 - Servers: 1,934, Users: 30,100<br>
+
+</p>
+ 
+<p><b>Links:</b><br>
+<a href="https://discordapp.com/api/oauth2/authorize?client_id=520376798131912720&permissions=116736&scope=bot">Invite Link</a><br>
+<a href="https://discordbots.org/bot/520376798131912720">Discord Bots Page</a><br>
+<a href="https://www.buymeacoffee.com/CrimmisHatBot">Buy me a coffee!</a><br>
+
 </p>
