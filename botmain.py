@@ -43,7 +43,7 @@ async def on_message_delete(message):
 @client.command(pass_context=True)
 async def num_servers(ctx):
     """ Prints out the number of servers this bot is in """
-    hat_counts = np.load('hat_counts.npy')
+    hat_counts = np.load('misc/hat_counts.npy')
 
     print("q!num_servers from: {} in #{} ".format(ctx.message.channel.guild.name, ctx.message.channel.name))
     string = "CrimmisHatBot is in {} servers, having given hats to {} users since 11/15/21!".format(len(client.guilds), hat_counts)
@@ -85,8 +85,10 @@ async def hathelp(ctx):
              "\n" \
              "Note that this bot will sometimes be down for maintenance or upgrades. Thanks!\n" \
              "\n" \
-             "If this bot did its job, consider giving it an upvote!\n" \
-             "Link: https://discordbots.org/bot/520376798131912720" \
+             "Consider leaving an upvote!\n" \
+             "Link: https://discordbots.org/bot/520376798131912720\n" \
+             "If you must tip, then buy me a coffee!\n" \
+             "Link: https://www.buymeacoffee.com/CrimmisHatBot"
 
     embed = discord.Embed()
     embed.add_field(name="CrimmisHatBot Usage!", value=string)
@@ -192,9 +194,9 @@ async def hat(ctx, *args):
         os.remove("crimmis_hats/createdhats/{}.png".format(im_name))
 
         # Add hat counter
-        hat_counts = np.load('hat_counts.npy')
+        hat_counts = np.load('misc/hat_counts.npy')
         hat_counts += 1
-        np.save('hat_counts.npy', hat_counts)
+        np.save('misc/hat_counts.npy', hat_counts)
     except Exception as e:
         # Catching general exceptions to give to users, handles traceback print out still
         print("Error making hat for {}, args {}. Exception {}.".format(ctx.message.author, args, e))
@@ -203,7 +205,7 @@ async def hat(ctx, *args):
 
 @client.command(pass_context=True)
 async def CHAMPION(ctx):
-    await ctx.channel.send("THE CHAMPION!", file=discord.File("peepocheer.png"))
+    await ctx.channel.send("THE CHAMPION!", file=discord.File("misc/peepocheer.png"))
 
 
 @client.command(pass_context=True)
@@ -213,7 +215,7 @@ async def ezclap(ctx):
 
 @client.command(pass_context=True)
 async def YEP(ctx):
-    await ctx.channel.send("YEP Crimmis", file=discord.File("YEPCrimmis.png"))
+    await ctx.channel.send("YEP Crimmis", file=discord.File("misc/YEPCrimmis.png"))
 
 
 @client.command(pass_context=True)
