@@ -1,7 +1,9 @@
 <h1><u>CrimmisHatBot</u></h1>
 <p>Discord.py bot that's functionality is to put Christmas hats on discord user's avatars.</p>
+<p>Note that I only run this bot from November to New Years every year (due to hosting laziness) but feel free to fork and host if you're interested in using it outside of the holidays!</p>
 
-<p>To use: q!hat<br>
+<p><b>Commands and usage:</b><br>
+To use: q!hat<br>
   For info: q!hathelp<br>
   Feedback: q!feedback<br>
   To see hat types: q!hats</p>
@@ -23,7 +25,7 @@
 2018 - Servers: 300 <br>
 2019 - Servers: 700 <br>
 2020 - Servers: 1,204 <br>
-2021 - Servers: 1,934, Users: 30,100<br>
+2021 - Servers: 1,934, Users: 30,600<br>
 
 </p>
  
