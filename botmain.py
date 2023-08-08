@@ -15,8 +15,9 @@ import string
 import config
 from error_handler import CommandErrorHandler
 
-Client = discord.Client()
-client = commands.Bot(command_prefix="q!")
+intents = discord.Intents.all()
+Client = discord.Client(intents=intents)
+client = commands.Bot(intents=intents, command_prefix="q!")
 client.add_cog(CommandErrorHandler(client))
 
 users = {}
