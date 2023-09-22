@@ -78,7 +78,7 @@ class Buttons(discord.ui.View):
         """
         # Check if the proper user
         if interaction.user.id != self.original_user_id:
-            await interaction.response.send_message(content="Not the original user!", delete_after=10.0)
+            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
             return
 
         # Shift over horizontal by given pixels
@@ -209,8 +209,12 @@ class Buttons(discord.ui.View):
     async def rotate_thirty_cw(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_rotation(interaction, rotation_modifier=-30)
 
+    @discord.ui.button(label="Delete", style=discord.ButtonStyle.gray, emoji="❌")
+    async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.message.delete()
 
-@tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed!")
+
+@tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed! Hat Types are 0-4.")
 async def hat(interaction, hattype: int = 0, url: str=""):
     """
     Hat Discord command, handles the initial interaction with a user in terms of returning a
@@ -221,6 +225,11 @@ async def hat(interaction, hattype: int = 0, url: str=""):
     """
     # Local log
     print(f"Making hat for {interaction.user.name} in {interaction.guild.name}.")
+
+    # Check that hattype is less than 5
+    if not 0 <= hattype < 5:
+        await interaction.response.send_message(content=f"Invalid Hat Type {hattype}. Please check available hats (0-4)!", delete_after=5.0)
+        return
 
     # Get the user's avatar and download image
     avatar_url = interaction.user.avatar.url
@@ -248,7 +257,7 @@ async def hat(interaction, hattype: int = 0, url: str=""):
     # Get the Discord File object and the Buttons View
     file = discord.File("crimmis_hats/createdhats/{}.png".format(im_name))
     view = Buttons(interaction.user.name, interaction.user.id, image, hat, hattype)
-    await interaction.response.send_message(content=f"Here is your hat, {str(interaction.user.title())}!", file=file, view=view)
+    await interaction.response.send_message(content=f"Here is your hat, {str(interaction.user.name.title())}!", file=file, view=view)
 
 
 @tree.command(name="displayhats", description="Displays available hats and their IDs!")
