@@ -150,7 +150,7 @@ class Buttons(discord.ui.View):
 
     @discord.ui.button(label="Feedback", style=discord.ButtonStyle.gray, emoji="📝")
     async def feedback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(content="Currently not implemented, but thanks for the thought!", delete_after=5.0)
+        await interaction.response.send_message(content="Currently Feedback sending is not implemented, but thanks for the thought!", delete_after=5.0)
 
     @discord.ui.button(label="Scale Up 25%", style=discord.ButtonStyle.gray, emoji="🔎")
     async def scale_up_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -170,19 +170,29 @@ class Buttons(discord.ui.View):
 
 
 @tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed!")
-async def hat(interaction, hattype: int = 0):
+async def hat(interaction, hattype: int = 0, url: str=""):
     """
     Hat Discord command, handles the initial interaction with a user in terms of returning a
     first-try hat placement and setting up the User's class
     :param interaction: Discord.py Interaction, holding useful state
     :param hattype: Which of the available hats to use, currently set in the initial command
+    :param url: Allows user to input an image url rather than using their avatar
     """
+    # Local log
+    print(f"Making hat for {interaction.user.name} in {interaction.guild.name}.")
+
     # Get the user's avatar and download image
     avatar_url = interaction.user.avatar.url
+    if url != "":
+        avatar_url = url
 
     # Get the image via an html request
-    response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
-    image = Image.open(BytesIO(response.content)).resize((500, 500))
+    try:
+        response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
+        image = Image.open(BytesIO(response.content)).resize((500, 500))
+    except Exception as e:
+        await interaction.response.send_message(content=f"Invalid URL for {avatar_url}!", delete_after=5.0)
+        return
 
     # Get the type of hat
     folder = get_imgs("crimmis_hats/")
