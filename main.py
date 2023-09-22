@@ -33,6 +33,7 @@ class Buttons(discord.ui.View):
         self.vertical_px = 0
         self.horizontal_px = 150
         self.hat_scale = 1.0
+        self.hat_rotation = 0
         print(f"New view setup for {user_name}.")
 
     def return_string(self):
@@ -54,6 +55,10 @@ class Buttons(discord.ui.View):
         hat = self.hat.copy()
         hat_width, hat_height = int(hat.width * self.hat_scale), int(hat.height * self.hat_scale)
         hat = hat.resize((hat_width, hat_height))
+
+        # Rotate the hat
+        if self.hat_rotation != 0:
+            hat = hat.rotate(self.hat_rotation, expand=1)
 
         # Apply move given and temporarily save hat
         image.paste(hat, (self.horizontal_px, self.vertical_px), mask=hat)
@@ -95,6 +100,22 @@ class Buttons(discord.ui.View):
         """
         # Update hat scale
         self.hat_scale += scale_modifier
+
+        # Get new hat
+        file_name, new_hat = self.reapply_hat()
+
+        # Edit original message for successful interaction
+        await interaction.message.delete()
+        await interaction.response.send_message(content="", file=new_hat, view=self)
+
+    async def modify_rotation(self, interaction: discord.Interaction, rotation_modifier: int = 30):
+        """
+        Utility function to handle the hat rotation commands as well as sending the finish product back
+        :param interaction: Discord.py Interaction, holding useful state
+        :param rotation_modifier: How much to rotate the image by, in terms of degrees
+        """
+        # Update hat scale
+        self.hat_rotation += rotation_modifier
 
         # Get new hat
         file_name, new_hat = self.reapply_hat()
@@ -156,10 +177,6 @@ class Buttons(discord.ui.View):
     async def scale_up_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=0.25)
 
-    @discord.ui.button(label="Scale Down 25%", style=discord.ButtonStyle.gray, emoji="🔎")
-    async def scale_down_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.modify_scale(interaction, scale_modifier=-0.25)
-
     @discord.ui.button(label="Scale Up 5%", style=discord.ButtonStyle.gray, emoji="🔎")
     async def scale_up(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=0.05)
@@ -167,6 +184,30 @@ class Buttons(discord.ui.View):
     @discord.ui.button(label="Scale Down 5%", style=discord.ButtonStyle.gray, emoji="🔎")
     async def scale_down(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=-0.05)
+
+    @discord.ui.button(label="Scale Down 25%", style=discord.ButtonStyle.gray, emoji="🔎")
+    async def scale_down_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_scale(interaction, scale_modifier=-0.25)
+
+    @discord.ui.button(label="Github", style=discord.ButtonStyle.gray, emoji="🔗")
+    async def github_link(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(content="Source code is available at: https://github.com/qu-gg/CrimmisHatBot!", delete_after=10.0)
+
+    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↪")
+    async def rotate_thirty_ccw(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_rotation(interaction, rotation_modifier=30)
+
+    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↪")
+    async def rotate_one_ccw(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_rotation(interaction, rotation_modifier=1)
+
+    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↩")
+    async def rotate_one_cw(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_rotation(interaction, rotation_modifier=-1)
+
+    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↩")
+    async def rotate_thirty_cw(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_rotation(interaction, rotation_modifier=-30)
 
 
 @tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed!")
@@ -207,8 +248,7 @@ async def hat(interaction, hattype: int = 0, url: str=""):
     # Get the Discord File object and the Buttons View
     file = discord.File("crimmis_hats/createdhats/{}.png".format(im_name))
     view = Buttons(interaction.user.name, interaction.user.id, image, hat, hattype)
-    view.add_item(discord.ui.Button(label="Github", style=discord.ButtonStyle.link, url="https://github.com/qu-gg/CrimmisHatBot"))
-    await interaction.response.send_message(content=f"Here is your hat, {str(interaction.user)}!", file=file, view=view)
+    await interaction.response.send_message(content=f"Here is your hat, {str(interaction.user.title())}!", file=file, view=view)
 
 
 @tree.command(name="displayhats", description="Displays available hats and their IDs!")
