@@ -103,9 +103,9 @@ class Buttons(discord.ui.View):
         await interaction.message.delete()
         await interaction.response.send_message(content="", file=new_hat, view=self)
 
-    @discord.ui.button(label="10px Left", style=discord.ButtonStyle.gray, emoji="⏪")
-    async def tenpx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.modify_placement(interaction, horizontal_mod=-10)
+    @discord.ui.button(label="20px Left", style=discord.ButtonStyle.gray, emoji="⏪")
+    async def twentypx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_placement(interaction, horizontal_mod=-20)
 
     @discord.ui.button(label="1px Left", style=discord.ButtonStyle.gray, emoji="◀")
     async def onepx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -115,9 +115,9 @@ class Buttons(discord.ui.View):
     async def onepx_right(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, horizontal_mod=1)
 
-    @discord.ui.button(label="10px Right", style=discord.ButtonStyle.gray, emoji="⏩")
-    async def tenpx_right(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.modify_placement(interaction, horizontal_mod=10)
+    @discord.ui.button(label="20px Right", style=discord.ButtonStyle.gray, emoji="⏩")
+    async def twentypx_right(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_placement(interaction, horizontal_mod=20)
 
     @discord.ui.button(label="Flip Hat", style=discord.ButtonStyle.gray, emoji="🐬")
     async def flip(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -132,9 +132,9 @@ class Buttons(discord.ui.View):
         await interaction.message.delete()
         await interaction.response.send_message(content="", file=new_hat, view=self)
 
-    @discord.ui.button(label="10px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="⏫")
-    async def tenpx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.modify_placement(interaction, vertical_mod=-10)
+    @discord.ui.button(label="20px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="⏫")
+    async def twentypx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_placement(interaction, vertical_mod=-20)
 
     @discord.ui.button(label="1px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="🔼")
     async def onepx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -144,13 +144,13 @@ class Buttons(discord.ui.View):
     async def onepx_down(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, vertical_mod=1)
 
-    @discord.ui.button(label="10px Down", style=discord.ButtonStyle.gray, emoji="⏬")
-    async def tenpx_down(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.modify_placement(interaction, vertical_mod=5)
+    @discord.ui.button(label="20px Down", style=discord.ButtonStyle.gray, emoji="⏬")
+    async def twentypx_down(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.modify_placement(interaction, vertical_mod=20)
 
     @discord.ui.button(label="Feedback", style=discord.ButtonStyle.gray, emoji="📝")
     async def feedback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(content="Thanks for the feedback!", delete_after=5.0)
+        await interaction.response.send_message(content="Currently not implemented, but thanks for the thought!", delete_after=5.0)
 
     @discord.ui.button(label="Scale Up 25%", style=discord.ButtonStyle.gray, emoji="🔎")
     async def scale_up_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
