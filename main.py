@@ -142,6 +142,11 @@ class Buttons(discord.ui.View):
 
     @discord.ui.button(label="Flip Hat", style=discord.ButtonStyle.gray, emoji="🐬")
     async def flip(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Check if the proper user
+        if interaction.user.id != self.original_user_id:
+            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
+            return
+
         # Flip the boolean
         self.flip = True if self.flip is False else False
 
@@ -211,6 +216,11 @@ class Buttons(discord.ui.View):
 
     @discord.ui.button(label="Delete", style=discord.ButtonStyle.gray, emoji="❌")
     async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Check if the proper user
+        if interaction.user.id != self.original_user_id:
+            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
+            return
+
         await interaction.message.delete()
 
 
