@@ -1,11 +1,10 @@
-import os
+import time
 import discord
 import requests
 import numpy as np
 
 from PIL import Image
 from io import BytesIO
-from utils import get_imgs
 from bot_token import TOKEN
 from discord import app_commands
 
@@ -16,12 +15,12 @@ tree = app_commands.CommandTree(client)
 
 
 class Buttons(discord.ui.View):
-    def __init__(self, user_name, user_id, image, hat, hat_type=0, *, timeout=360):
+    def __init__(self, user_name, user_id, image, base_hat, hat_type="0", *, timeout=360):
         super().__init__(timeout=timeout)
 
         # Holds the actual objects of the image and hat
         self.image = image
-        self.hat = hat
+        self.hat = base_hat
 
         # More static variables to track
         self.original_user_name = user_name
@@ -34,13 +33,34 @@ class Buttons(discord.ui.View):
         self.horizontal_px = 150
         self.hat_scale = 1.0
         self.hat_rotation = 0
-        print(f"New view setup for {user_name}.")
+        print(f"[{time.ctime():25}] New view setup for {user_name}.")
+
+    async def send_hat(self, interaction, new_hat):
+        """
+        Handles sending the hat for the various modification commands.
+        Since we don't want to save the file locally and only use the PIL file, this requires a BytesIO object
+        to hold the PIL image in its binary state, from which we save and seek it.
+        :param interaction:
+        :param new_hat:
+        :return:
+        """
+        with BytesIO() as image_binary:
+            new_hat.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            await interaction.message.delete()
+            await interaction.response.send_message(
+                content=self.return_string(),
+                file=discord.File(image_binary, filename='image.png'),
+                view=self
+            )
 
     def return_string(self):
-        return f"Horizontal: {self.horizontal_px} " \
-               f"Vertical: {self.vertical_px} " \
-               f"Flipped: {self.flip} " \
-               f"Scale: {np.round(self.hat_scale, 2)}"
+        return f"**Parameters**:\n" \
+               f"- X Location: {self.horizontal_px}\n" \
+               f"- Y Location: {self.vertical_px}\n" \
+               f"- Flipped: {self.flip}\n" \
+               f"- Scale: {np.round(self.hat_scale, 2)}x\n" \
+               f"- Rotation: {self.hat_rotation}°\n"
 
     def reapply_hat(self):
         """
@@ -52,22 +72,17 @@ class Buttons(discord.ui.View):
         image = self.image.copy()
 
         # Rescale hat
-        hat = self.hat.copy()
-        hat_width, hat_height = int(hat.width * self.hat_scale), int(hat.height * self.hat_scale)
-        hat = hat.resize((hat_width, hat_height))
+        modified_hat = self.hat.copy()
+        hat_width, hat_height = int(modified_hat.width * self.hat_scale), int(modified_hat.height * self.hat_scale)
+        modified_hat = modified_hat.resize((hat_width, hat_height))
 
         # Rotate the hat
         if self.hat_rotation != 0:
-            hat = hat.rotate(self.hat_rotation, expand=1)
+            modified_hat = modified_hat.rotate(self.hat_rotation, expand=1)
 
         # Apply move given and temporarily save hat
-        image.paste(hat, (self.horizontal_px, self.vertical_px), mask=hat)
-        image_name = ''.join(str(np.random.randint(0, 10000000)))
-        image.save(f"crimmis_hats/createdhats/{image_name}.png")
-
-        # Get the file as a Discord File and return
-        file = discord.File(f"crimmis_hats/createdhats/{image_name}.png")
-        return image_name, file
+        image.paste(modified_hat, (self.horizontal_px, self.vertical_px), mask=modified_hat)
+        return image
 
     async def modify_placement(self, interaction: discord.Interaction, horizontal_mod: int = 0, vertical_mod: int = 0):
         """
@@ -85,12 +100,8 @@ class Buttons(discord.ui.View):
         self.horizontal_px += horizontal_mod
         self.vertical_px += vertical_mod
 
-        # Get new hat
-        file_name, new_hat = self.reapply_hat()
-
-        # Edit original message for successful interaction
-        await interaction.message.delete()
-        await interaction.response.send_message(content="", file=new_hat, view=self)
+        # Reapply the hat and send it
+        await self.send_hat(interaction, self.reapply_hat())
 
     async def modify_scale(self, interaction: discord.Interaction, scale_modifier: float = 0.05):
         """
@@ -98,15 +109,21 @@ class Buttons(discord.ui.View):
         :param interaction: Discord.py Interaction, holding useful state
         :param scale_modifier: How much to modify the scale by in terms of %, e.g. 5% smaller
         """
+        # Check if the proper user
+        if interaction.user.id != self.original_user_id:
+            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
+            return
+
+        # Check if scale would go negative here
+        if self.hat_scale + scale_modifier <= 0:
+            await interaction.response.send_message(content="Hat Scale has to be above 0!", delete_after=5.0)
+            return
+
         # Update hat scale
         self.hat_scale += scale_modifier
 
-        # Get new hat
-        file_name, new_hat = self.reapply_hat()
-
-        # Edit original message for successful interaction
-        await interaction.message.delete()
-        await interaction.response.send_message(content="", file=new_hat, view=self)
+        # Reapply the hat and send it
+        await self.send_hat(interaction, self.reapply_hat())
 
     async def modify_rotation(self, interaction: discord.Interaction, rotation_modifier: int = 30):
         """
@@ -114,15 +131,16 @@ class Buttons(discord.ui.View):
         :param interaction: Discord.py Interaction, holding useful state
         :param rotation_modifier: How much to rotate the image by, in terms of degrees
         """
+        # Check if the proper user
+        if interaction.user.id != self.original_user_id:
+            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
+            return
+
         # Update hat scale
         self.hat_rotation += rotation_modifier
 
-        # Get new hat
-        file_name, new_hat = self.reapply_hat()
-
-        # Edit original message for successful interaction
-        await interaction.message.delete()
-        await interaction.response.send_message(content="", file=new_hat, view=self)
+        # Reapply the hat and send it
+        await self.send_hat(interaction, self.reapply_hat())
 
     @discord.ui.button(label="20px Left", style=discord.ButtonStyle.gray, emoji="⏪")
     async def twentypx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -152,11 +170,9 @@ class Buttons(discord.ui.View):
 
         # Flip the hat and get the new image
         self.hat = self.hat.transpose(Image.FLIP_LEFT_RIGHT)
-        file_name, new_hat = self.reapply_hat()
 
-        # Edit original message for successful interaction
-        await interaction.message.delete()
-        await interaction.response.send_message(content="", file=new_hat, view=self)
+        # Reapply the hat and send it
+        await self.send_hat(interaction, self.reapply_hat())
 
     @discord.ui.button(label="20px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="⏫")
     async def twentypx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -196,7 +212,7 @@ class Buttons(discord.ui.View):
 
     @discord.ui.button(label="Github", style=discord.ButtonStyle.gray, emoji="🔗")
     async def github_link(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(content="Source code is available at: https://github.com/qu-gg/CrimmisHatBot!", delete_after=10.0)
+        await interaction.response.send_message(content="Source code is available at: https://github.com/qu-gg/CrimmisHatBot", delete_after=10.0)
 
     @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↪")
     async def rotate_thirty_ccw(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -225,7 +241,18 @@ class Buttons(discord.ui.View):
 
 
 @tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed! Hat Types are 0-4.")
-async def hat(interaction, hattype: int = 0, url: str=""):
+@app_commands.choices(hattype=[
+        app_commands.Choice(name="Crimmis - 0", value="0"),
+        app_commands.Choice(name="Crimmis - 1", value="1"),
+        app_commands.Choice(name="Crimmis - 2", value="2"),
+        app_commands.Choice(name="Crimmis - 3", value="3"),
+        app_commands.Choice(name="Crimmis - 4", value="4"),
+        app_commands.Choice(name="Halloween - Pumpkin", value="pumpkin"),
+        app_commands.Choice(name="Halloween - Witch Hat", value="witch_hat"),
+        app_commands.Choice(name="Halloween - Jason Mask", value="jason_mask"),
+        app_commands.Choice(name="Halloween - Freddy Sweater", value="freddy_sweater")
+    ])
+async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
     """
     Hat Discord command, handles the initial interaction with a user in terms of returning a
     first-try hat placement and setting up the User's class
@@ -234,19 +261,17 @@ async def hat(interaction, hattype: int = 0, url: str=""):
     :param url: Allows user to input an image url rather than using their avatar
     """
     # Local log
-    print(f"Making hat for {interaction.user.name} in {interaction.guild.name}.")
+    print(f"[{time.ctime():25}] Making hat for {interaction.user.name} in {interaction.guild.name} with hattype {hattype.name}.")
 
-    # Check that hattype is less than 5
-    if not 0 <= hattype < 5:
-        await interaction.response.send_message(content=f"Invalid Hat Type {hattype}. Please check available hats (0-4)!", delete_after=5.0)
-        return
+    # Get hat.value from Choice
+    hattype = hattype.value
 
     # Get the user's avatar and download image
     avatar_url = interaction.user.avatar.url
     if url != "":
         avatar_url = url
 
-    # Get the image via an html request
+    # Get the image via a html request
     try:
         response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
         image = Image.open(BytesIO(response.content)).resize((500, 500))
@@ -255,19 +280,22 @@ async def hat(interaction, hattype: int = 0, url: str=""):
         return
 
     # Get the type of hat
-    folder = get_imgs("crimmis_hats/")
-    hat = Image.open(folder.get(str(hattype)))
+    base_hat = Image.open(f"crimmis_hats/{hattype}.png")
 
-    # Apply move given and temporarily save hat
+    # Get the starter hat placement
     starter_image = image.copy()
-    starter_image.paste(hat, (150, 0), mask=hat)
-    im_name = ''.join(str(np.random.randint(0, 10000000)))
-    starter_image.save("crimmis_hats/createdhats/{}.png".format(im_name))
+    starter_image.paste(base_hat, (150, 0), mask=base_hat)
 
-    # Get the Discord File object and the Buttons View
-    file = discord.File("crimmis_hats/createdhats/{}.png".format(im_name))
-    view = Buttons(interaction.user.name, interaction.user.id, image, hat, hattype)
-    await interaction.response.send_message(content=f"Here is your hat, {str(interaction.user.name.title())}!", file=file, view=view)
+    # Build the view and send the message
+    view = Buttons(interaction.user.name, interaction.user.id, image, base_hat, hattype)
+    with BytesIO() as image_binary:
+        starter_image.save(image_binary, 'PNG')
+        image_binary.seek(0)
+        await interaction.response.send_message(
+            content=f"Here is your hat, {str(interaction.user.name.title())}!\n{view.return_string()}",
+            file=discord.File(image_binary, filename='image.png'),
+            view=view
+        )
 
 
 @tree.command(name="displayhats", description="Displays available hats and their IDs!")
@@ -279,12 +307,8 @@ async def display_hat(interaction):
 @client.event
 async def on_ready():
     await tree.sync()
-    print("Ready!")
+    print(f"[{time.ctime():25}] Ready!")
 
-
-# If created_hats folder doesn't exist, create it
-if not os.path.exists("crimmis_hats/createdhats/"):
-    os.mkdir("crimmis_hats/createdhats/")
 
 # Run the bot
 client.run(TOKEN)
