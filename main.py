@@ -305,9 +305,18 @@ async def display_hat(interaction):
 
 
 @client.event
+async def set_status():
+    await client.change_presence(
+        status=discord.Status.online,
+        activity=discord.Activity(type=discord.ActivityType.playing, name="Sporadic Uptime!")
+    )
+
+
+@client.event
 async def on_ready():
     await tree.sync()
     print(f"[{time.ctime():25}] Ready!")
+    await set_status()
 
 
 # Run the bot
