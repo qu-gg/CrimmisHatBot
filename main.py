@@ -50,7 +50,7 @@ class Buttons(discord.ui.View):
             await interaction.message.delete()
             await interaction.response.send_message(
                 content=self.return_string(),
-                file=discord.File(image_binary, filename='image.png'),
+                file=discord.File(image_binary, filename=f'{interaction.user.name}_hat.png'),
                 view=self
             )
 
@@ -274,7 +274,7 @@ async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
     # Get the image via a html request
     try:
         response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
-        image = Image.open(BytesIO(response.content)).resize((500, 500))
+        image = Image.open(BytesIO(response.content))
     except Exception as e:
         await interaction.response.send_message(content=f"Invalid URL for {avatar_url}!", delete_after=5.0)
         return
@@ -293,7 +293,7 @@ async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
         image_binary.seek(0)
         await interaction.response.send_message(
             content=f"Here is your hat, {str(interaction.user.name.title())}!\n{view.return_string()}",
-            file=discord.File(image_binary, filename='image.png'),
+            file=discord.File(image_binary, filename=f'{interaction.user.name}_hat.png'),
             view=view
         )
 
