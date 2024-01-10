@@ -47,10 +47,9 @@ class Buttons(discord.ui.View):
         with BytesIO() as image_binary:
             new_hat.save(image_binary, 'PNG')
             image_binary.seek(0)
-            await interaction.message.delete()
-            await interaction.response.send_message(
-                content=self.return_string(),
-                file=discord.File(image_binary, filename=f'{interaction.user.name}_hat.png'),
+            await interaction.response.edit_message(
+                content=f"Here is your hat, {str(interaction.user.name.title())}!\n{self.return_string()}",
+                attachments=[discord.File(image_binary, filename=f'{interaction.user.name}_hat.png')],
                 view=self
             )
 
@@ -142,23 +141,23 @@ class Buttons(discord.ui.View):
         # Reapply the hat and send it
         await self.send_hat(interaction, self.reapply_hat())
 
-    @discord.ui.button(label="20px Left", style=discord.ButtonStyle.gray, emoji="⏪")
+    @discord.ui.button(label="20px Left", style=discord.ButtonStyle.gray, emoji="⏪", row=1)
     async def twentypx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, horizontal_mod=-20)
 
-    @discord.ui.button(label="1px Left", style=discord.ButtonStyle.gray, emoji="◀")
+    @discord.ui.button(label="1px Left", style=discord.ButtonStyle.gray, emoji="◀", row=1)
     async def onepx_left(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, horizontal_mod=-1)
 
-    @discord.ui.button(label="1px Right", style=discord.ButtonStyle.gray, emoji="▶")
+    @discord.ui.button(label="1px Right", style=discord.ButtonStyle.gray, emoji="▶", row=1)
     async def onepx_right(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, horizontal_mod=1)
 
-    @discord.ui.button(label="20px Right", style=discord.ButtonStyle.gray, emoji="⏩")
+    @discord.ui.button(label="20px Right", style=discord.ButtonStyle.gray, emoji="⏩", row=1)
     async def twentypx_right(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, horizontal_mod=20)
 
-    @discord.ui.button(label="Flip Hat", style=discord.ButtonStyle.gray, emoji="🐬")
+    @discord.ui.button(label="Flip Hat", style=discord.ButtonStyle.gray, emoji="🐬", row=1)
     async def flip(self, interaction: discord.Interaction, button: discord.ui.Button):
         # Check if the proper user
         if interaction.user.id != self.original_user_id:
@@ -174,70 +173,53 @@ class Buttons(discord.ui.View):
         # Reapply the hat and send it
         await self.send_hat(interaction, self.reapply_hat())
 
-    @discord.ui.button(label="20px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="⏫")
+    @discord.ui.button(label="20px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="⏫", row=2)
     async def twentypx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, vertical_mod=-20)
 
-    @discord.ui.button(label="1px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="🔼")
+    @discord.ui.button(label="1px Up‏‏‎ ‎‏‏‎ ‎", style=discord.ButtonStyle.gray, emoji="🔼", row=2)
     async def onepx_up(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, vertical_mod=-1)
 
-    @discord.ui.button(label="1px Down", style=discord.ButtonStyle.gray, emoji="🔽")
+    @discord.ui.button(label="1px Down", style=discord.ButtonStyle.gray, emoji="🔽", row=2)
     async def onepx_down(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, vertical_mod=1)
 
-    @discord.ui.button(label="20px Down", style=discord.ButtonStyle.gray, emoji="⏬")
+    @discord.ui.button(label="20px Down", style=discord.ButtonStyle.gray, emoji="⏬", row=2)
     async def twentypx_down(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_placement(interaction, vertical_mod=20)
 
-    @discord.ui.button(label="Feedback", style=discord.ButtonStyle.gray, emoji="📝")
-    async def feedback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(content="Currently Feedback sending is not implemented, but thanks for the thought!", delete_after=5.0)
-
-    @discord.ui.button(label="Scale Up 25%", style=discord.ButtonStyle.gray, emoji="🔎")
+    @discord.ui.button(label="Scale Up 25%", style=discord.ButtonStyle.gray, emoji="🔎", row=3)
     async def scale_up_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=0.25)
 
-    @discord.ui.button(label="Scale Up 5%", style=discord.ButtonStyle.gray, emoji="🔎")
+    @discord.ui.button(label="Scale Up 5%", style=discord.ButtonStyle.gray, emoji="🔎", row=3)
     async def scale_up(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=0.05)
 
-    @discord.ui.button(label="Scale Down 5%", style=discord.ButtonStyle.gray, emoji="🔎")
+    @discord.ui.button(label="Scale Down 5%", style=discord.ButtonStyle.gray, emoji="🔎", row=3)
     async def scale_down(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=-0.05)
 
-    @discord.ui.button(label="Scale Down 25%", style=discord.ButtonStyle.gray, emoji="🔎")
+    @discord.ui.button(label="Scale Down 25%", style=discord.ButtonStyle.gray, emoji="🔎", row=3)
     async def scale_down_quarter(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_scale(interaction, scale_modifier=-0.25)
 
-    @discord.ui.button(label="Github", style=discord.ButtonStyle.gray, emoji="🔗")
-    async def github_link(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(content="Source code is available at: https://github.com/qu-gg/CrimmisHatBot", delete_after=10.0)
-
-    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↪")
+    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↪", row=4)
     async def rotate_thirty_ccw(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_rotation(interaction, rotation_modifier=30)
 
-    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↪")
+    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↪", row=4)
     async def rotate_one_ccw(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_rotation(interaction, rotation_modifier=1)
 
-    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↩")
+    @discord.ui.button(label="Rotate 1°", style=discord.ButtonStyle.gray, emoji="↩", row=4)
     async def rotate_one_cw(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_rotation(interaction, rotation_modifier=-1)
 
-    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↩")
+    @discord.ui.button(label="Rotate 30°", style=discord.ButtonStyle.gray, emoji="↩", row=4)
     async def rotate_thirty_cw(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.modify_rotation(interaction, rotation_modifier=-30)
-
-    @discord.ui.button(label="Delete", style=discord.ButtonStyle.gray, emoji="❌")
-    async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Check if the proper user
-        if interaction.user.id != self.original_user_id:
-            await interaction.response.send_message(content="Not the original user!", delete_after=5.0)
-            return
-
-        await interaction.message.delete()
 
 
 @tree.command(name="hat", description="Interactive command place a hat on your avatar and adjust it as needed! Hat Types are 0-4.")
@@ -308,7 +290,7 @@ async def display_hat(interaction):
 async def set_status():
     await client.change_presence(
         status=discord.Status.online,
-        activity=discord.Activity(type=discord.ActivityType.playing, name="Sporadic Uptime!")
+        activity=discord.Activity(type=discord.ActivityType.playing, name="New UI! Use /hat")
     )
 
 
