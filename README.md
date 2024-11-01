@@ -12,9 +12,10 @@ To see hat types: /displayhats</p>
 2018 - Servers: 300 <br>
 2019 - Servers: 700 <br>
 2020 - Servers: 1,204 <br>
-2021 - Servers: 1,934, Users: 30,600<br>
+2021 - Servers: 1,934<br>
 2022 - N/A<br>
-2023 - Servers: 1,573 so far<br>
+2023 - Servers: 1,573<br>
+2024 - Servers: 1,646<br>
 
 </p>
  
