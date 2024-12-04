@@ -243,13 +243,20 @@ async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
     :param url: Allows user to input an image url rather than using their avatar
     """
     # Local log
-    print(f"[{time.ctime():25}] Making hat for {interaction.user.name} in {interaction.guild.name} with hattype {hattype.name}.")
+    try:
+        print(f"[{time.ctime():25}] Making hat for {interaction.user.name} in {interaction.guild.name} with hattype {hattype.name}.")
+    except AttributeError as e:
+        print(f"[{time.ctime():25}] Making hat for {interaction.user.name} in DMs with hattype {hattype.name}.")
 
     # Get hat.value from Choice
     hattype = hattype.value
 
     # Get the user's avatar and download image
-    avatar_url = interaction.user.avatar.url
+    try:
+        avatar_url = interaction.user.avatar.url    
+    except:
+        avatar_url = interaction.user.display_avatar
+    print(avatar_url)
     if url != "":
         avatar_url = url
 
@@ -258,26 +265,30 @@ async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
         response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
         image = Image.open(BytesIO(response.content))
     except Exception as e:
-        await interaction.response.send_message(content=f"Invalid URL for {avatar_url}!", delete_after=5.0)
+        await interaction.response.send_message(content=f"Invalid URL for {avatar_url}!", delete_after=10.0)
         return
 
     # Get the type of hat
     base_hat = Image.open(f"crimmis_hats/{hattype}.png")
 
     # Get the starter hat placement
-    starter_image = image.copy()
-    starter_image.paste(base_hat, (150, 0), mask=base_hat)
+    try:
+        starter_image = image.copy()
+        starter_image.paste(base_hat, (150, 0), mask=base_hat)
 
-    # Build the view and send the message
-    view = Buttons(interaction.user.name, interaction.user.id, image, base_hat, hattype)
-    with BytesIO() as image_binary:
-        starter_image.save(image_binary, 'PNG')
-        image_binary.seek(0)
-        await interaction.response.send_message(
-            content=f"Here is your hat, {str(interaction.user.name.title())}!\n{view.return_string()}",
-            file=discord.File(image_binary, filename=f'{interaction.user.name}_hat.png'),
-            view=view
-        )
+        # Build the view and send the message
+        view = Buttons(interaction.user.name, interaction.user.id, image, base_hat, hattype)
+        with BytesIO() as image_binary:
+            starter_image.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            await interaction.response.send_message(
+                content=f"Here is your hat, {str(interaction.user.name.title())}!\n{view.return_string()}",
+                file=discord.File(image_binary, filename=f'{interaction.user.name}_hat.png'),
+                view=view
+            )
+    except Exception as e:
+        print(f"[{time.ctime():25}] Error in processing hat for {interaction.user.name}: {e}")
+        await interaction.response.send_message(content=f"An error occurred during processing the request. Try again!", delete_after=10.0)
 
 
 @tree.command(name="displayhats", description="Displays available hats and their IDs!")
@@ -290,7 +301,7 @@ async def display_hat(interaction):
 async def set_status():
     await client.change_presence(
         status=discord.Status.online,
-        activity=discord.Activity(type=discord.ActivityType.playing, name="New UI! Use /hat")
+        activity=discord.Activity(type=discord.ActivityType.playing, name=f"/hat | {len(client.guilds)} servers")
     )
 
 
@@ -298,6 +309,7 @@ async def set_status():
 async def on_ready():
     await tree.sync()
     print(f"[{time.ctime():25}] Ready!")
+    print(f"[{time.ctime():25}] In {len(client.guilds)} servers.")
     await set_status()
 
 
