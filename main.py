@@ -120,6 +120,7 @@ class Buttons(discord.ui.View):
 
         # Update hat scale
         self.hat_scale += scale_modifier
+        self.hat_scale = np.round(self.hat_scale, 2)
 
         # Reapply the hat and send it
         await self.send_hat(interaction, self.reapply_hat())
