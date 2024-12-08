@@ -1,6 +1,6 @@
 import time
 import discord
-import requests
+import aiohttp
 import numpy as np
 
 from PIL import Image
@@ -235,13 +235,12 @@ class Buttons(discord.ui.View):
         app_commands.Choice(name="Halloween - Jason Mask", value="jason_mask"),
         app_commands.Choice(name="Halloween - Freddy Sweater", value="freddy_sweater")
     ])
-async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
+async def hat(interaction, hattype: app_commands.Choice[str]):
     """
     Hat Discord command, handles the initial interaction with a user in terms of returning a
     first-try hat placement and setting up the User's class
     :param interaction: Discord.py Interaction, holding useful state
     :param hattype: Which of the available hats to use, currently set in the initial command
-    :param url: Allows user to input an image url rather than using their avatar
     """
     # Local log
     try:
@@ -258,15 +257,15 @@ async def hat(interaction, hattype: app_commands.Choice[str], url: str=""):
     except:
         avatar_url = interaction.user.display_avatar
     print(avatar_url)
-    if url != "":
-        avatar_url = url
 
-    # Get the image via a html request
+    # Get the image via an async html request
     try:
-        response = requests.get(avatar_url, headers={'User-agent': 'Mozilla/5.0'})
-        image = Image.open(BytesIO(response.content))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(avatar_url) as response:
+                image_bytes = await response.read()
+                image = Image.open(BytesIO(image_bytes))
     except Exception as e:
-        await interaction.response.send_message(content=f"Invalid URL for {avatar_url}!", delete_after=10.0)
+        await interaction.response.send_message(content=f"Error in fetching Discord Avatar at URL: {avatar_url}!", delete_after=10.0)
         return
 
     # Get the type of hat
